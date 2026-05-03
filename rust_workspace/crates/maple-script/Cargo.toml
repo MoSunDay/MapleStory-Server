@@ -1,9 +1,11 @@
 [package]
 name = "maple-script"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.77"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
 
 [dependencies]
 maple-core = { path = "../maple-core" }
-# boa_engine = "0.19"
+
+[dev-dependencies]

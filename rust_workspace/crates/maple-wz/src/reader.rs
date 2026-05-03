@@ -80,6 +80,7 @@ pub fn open_wz<P: AsRef<Path>>(path: P) -> Result<Box<dyn super::DataProvider>, 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::data_types::DataProvider;
 
     #[test]
     fn test_wz_provider_trait() {

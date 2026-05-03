@@ -1,13 +1,17 @@
 [package]
 name = "maple-net"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.77"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
 
 [dependencies]
 maple-core = { path = "../maple-core" }
 maple-crypto = { path = "../maple-crypto" }
-# byteorder = "1"
-# bytes = "1"
-# tokio = { version = "1", features = ["full"] }
-# tracing = "0.1"
+byteorder.workspace = true
+bytes.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]

@@ -1,16 +1,21 @@
-// MapleStory-Server Rust migration
-// Entry point - ported from net/server/Server.java
+// MapleStory-Server Rust entry point
+// Ported from net/server/Server.java
+
+mod login;
 
 use tracing::info;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(EnvFilter::from_default_env().add_directive("info".parse()?))
         .init();
 
-    info!("MapleStory-Server Rust (Phase 0 - workspace boot)");
-    info!("TODO: Load config, init DB, start login/channel servers");
+    info!("MapleStory-Server Rust v0.1.0 starting...");
+    info!("Server version: v83");
+
+    login::run_login_server().await?;
 
     Ok(())
 }

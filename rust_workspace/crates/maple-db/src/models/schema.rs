@@ -206,6 +206,7 @@ pub struct ShopItem {
 }
 
 impl Default for Character {
+    #[allow(deprecated)]
     fn default() -> Self {
         Character {
             id: 0,
