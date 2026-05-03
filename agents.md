@@ -1,4 +1,4 @@
-Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
+Commit: ee5cc0ff39cc14da1ec1a7593c7501a18f560089
 
 # MapleStory-Server 逻辑地图
 
@@ -60,6 +60,12 @@ scripting ← client, server, net.server
 net       ← client, server, tools (最外层，接线层)
 ```
 
+## Rust 旁路迁移
+
+| 模块 | 源码路径 | 职责 | 文档 |
+|---|---|---|---|
+| **rust-workspace** | `rust_workspace/` | Rust 旁路服务端：类型常量、加密、网络、游戏逻辑、JS 桥接 | [agents/rust-workspace/index.md](agents/rust-workspace/index.md) |
+
 ## 非 Java 资源
 
 | 路径 | 用途 |
@@ -70,6 +76,7 @@ net       ← client, server, tools (最外层，接线层)
 | `cores/` | 编译期依赖 JAR（MINA/HikariCP/MySQL/SLF4J/JavaTuples） |
 | `tools/` | 30 个独立 Java 数据抓取/生成工具 |
 | `handbook/` | 游戏数据参考文本（NPC/怪物/物品/地图 ID 表） |
+| `rust_workspace/` | Rust 旁路服务端项目：Cargo workspace，共享 `scripts/`/`sql/`/`wz/` |
 
 ## 业务能力索引
 

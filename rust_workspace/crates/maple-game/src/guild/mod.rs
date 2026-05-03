@@ -1,0 +1,1 @@
+// Guild module stubs

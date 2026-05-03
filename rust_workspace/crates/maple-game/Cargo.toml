@@ -1,0 +1,13 @@
+[package]
+name = "maple-game"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+
+[dependencies]
+maple-core = { path = "../maple-core" }
+# maple-db = { path = "../maple-db" }
+# maple-net = { path = "../maple-net" }
+# maple-script = { path = "../maple-script" }
+# tokio = { version = "1", features = ["full"] }
+# tracing = "0.1"

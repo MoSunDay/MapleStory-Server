@@ -85,4 +85,4 @@ nbdist/
 /.history
 logs/
 wz*/
-scripts*/
+scripts*/rust_workspace/target/

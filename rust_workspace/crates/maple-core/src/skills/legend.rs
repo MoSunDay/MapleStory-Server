@@ -1,0 +1,24 @@
+// Auto-ported from constants.skills.Legend
+pub const THREE_SNAILS: i32 = 20001000;
+pub const RECOVERY: i32 = 20001001;
+pub const AGILE_BODY: i32 = 20001002;
+pub const LEGENDARY_SPIRIT: i32 = 20001003;
+pub const MONSTER_RIDER: i32 = 20001004;
+pub const ECHO_OF_HERO: i32 = 20001005;
+pub const JUMP_DOWN: i32 = 20001006;
+pub const MAKER: i32 = 20001007;
+pub const BAMBOO_THRUST: i32 = 20001009;
+pub const INVICIBLE_BARRIER: i32 = 20001010;
+pub const POWER_EXPLOSION: i32 = 20011011;
+pub const METEO_SHOWER: i32 = 20001011;
+pub const BLESSING_OF_THE_FAIRY: i32 = 20000012;
+pub const TUTORIAL_SKILL1: i32 = 20000014;
+pub const TUTORIAL_SKILL2: i32 = 20000015;
+pub const TUTORIAL_SKILL3: i32 = 20000016;
+pub const TUTORIAL_SKILL4: i32 = 20000017;
+pub const TUTORIAL_SKILL5: i32 = 20000018;
+pub const MAP_CHAIR: i32 = 20000100;
+pub const YETI_MOUNT1: i32 = 20001019;
+pub const YETI_MOUNT2: i32 = 20001022;
+pub const WITCH_BROOMSTICK: i32 = 20001023;
+pub const BALROG_MOUNT: i32 = 20001031;
