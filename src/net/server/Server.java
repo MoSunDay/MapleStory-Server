@@ -636,7 +636,7 @@ public class Server {
             int channelCount = Integer.parseInt(p.getProperty("channels" + i));
 
             if (channelCount < ServerConstants.CHANNEL_MIN_SIZE) {
-                System.out.println("Number of channels must be at least two.\r\n");
+                System.out.println("Number of channels must be at least one.\r\n");
 
                 return -1;
             }

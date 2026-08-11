@@ -36,8 +36,8 @@ Fork 自 HeavenMS 的 MapleStory（冒险岛）v83 私服服务端，基于 Java
 ```
 Server (单例)
  ├── LoginServer         端口 8484，处理认证/角色选择
- ├── World[0..4]         Scania/Bera/Aurora/Elysium/Reboot
- │    ├── Channel[0..1]  各自独立 MINA acceptor，独立端口
+ ├── World[0..N]         数量由 world.ini 的 worlds 驱动（当前发行 1：Scania；上限 5）
+ │    ├── Channel[0..M]  数量由 channelsN 驱动（当前发行 1）；各自独立 MINA acceptor，独立端口
  │    │   ├── MapleMapFactory → MapleMap[] (懒加载)
  │    │   ├── EventScriptManager
  │    │   └── HiredMerchant[]

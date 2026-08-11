@@ -35,7 +35,7 @@ public class ServerConstants {
     public static final int WLDLIST_SIZE = 5;                               // Max possible worlds on the server.
 
     // These are based on the channel list on the world selection screen (UIWorldSelect)
-    public static final int CHANNEL_MIN_SIZE = 2;                           // Mininum number of required channels per world
+    public static final int CHANNEL_MIN_SIZE = 1;                           // Mininum number of required channels per world
     public static final int CHANNEL_MAX_SIZE = 30;                          // Maximum possible channels per world
     public static final int CHANNEL_LOAD = 100;                             // Max players per channel (limit actually used to calculate the World server capacity).
     public static final int CHANNEL_LOCKS = 20;                             // Total number of structure management locks each channel has.
