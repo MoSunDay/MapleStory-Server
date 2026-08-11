@@ -242,6 +242,20 @@ public class MapleSessionCoordinator {
         }
     }
     
+    /**
+     * Force-disconnect any existing in-game session for the given account,
+     * so a new login can take over the account (kick old session offline).
+     * Returns true if an existing client was found and disconnected.
+     */
+    public boolean forceDisconnectAccount(int accountId) {
+        MapleClient ingameClient = onlineClients.remove(accountId);
+        if (ingameClient != null) {
+            ingameClient.forceDisconnect();
+            return true;
+        }
+        return false;
+    }
+
     public boolean canStartLoginSession(IoSession session) {
         if (!ServerConstants.DETERRED_MULTICLIENT) return true;
         

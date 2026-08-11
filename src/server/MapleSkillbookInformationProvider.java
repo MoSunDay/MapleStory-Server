@@ -141,7 +141,7 @@ public class MapleSkillbookInformationProvider {
         if(token.contains("/imgdir")) {
             status -= 1;
         }
-        else if(token.contains("imgdir")) {
+        else if(token.contains("imgdir") && !token.trim().endsWith("/>")) {
             status += 1;
         }
     }
@@ -182,7 +182,7 @@ public class MapleSkillbookInformationProvider {
             currentItemid = 0;
             currentCount = 0;
         }
-        else if(token.contains("imgdir")) {
+        else if(token.contains("imgdir") && !token.trim().endsWith("/>")) {
             status += 1;
         }
         else {
@@ -203,7 +203,7 @@ public class MapleSkillbookInformationProvider {
         if(token.contains("/imgdir")) {
             status -= 1;
         }
-        else if(token.contains("imgdir")) {
+        else if(token.contains("imgdir") && !token.trim().endsWith("/>")) {
             if(status == 1) {           //getting QuestId
                 d = getName(token);
                 questId = Integer.parseInt(d);
