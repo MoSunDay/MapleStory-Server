@@ -50,7 +50,7 @@ Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
 ## 并发模型
 
 - `MapleCharacter`：5 把锁（chrLock/evtLock/petLock/prtLock/cpnLock）+ 3 个 Atomic 字段
-- `MapleClient`：Semaphore(7) 限制操作频率 + encoderLock + 分片 loginLocks[200]
+- `MapleClient`：Semaphore(7) 限制操作频率 + encoderLock + 分片 loginLocks[200]；login() 支持顶号：密码正确且账号在线时先踢活跃会话（forceDisconnectAccount），残留 loggedin 脏旗标（重启遗留）直接清零放行
 - 角色 DB 保存通过 `ThreadManager` 异步执行
 
 ## 依赖

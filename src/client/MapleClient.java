@@ -566,17 +566,34 @@ public class MapleClient {
 					return 3;
 				}
 
-				if (getLoginState() > LOGIN_NOTLOGGEDIN) { // already loggedin
-					loggedIn = false;
-					loginok = 7;
-				} else if (passhash.charAt(0) == '$' && passhash.charAt(1) == '2' && BCrypt.checkpw(pwd, passhash)) {
-					loginok = (tos == 0) ? 23 : 0;
+				int pwok = 4;
+				if (passhash.charAt(0) == '$' && passhash.charAt(1) == '2' && BCrypt.checkpw(pwd, passhash)) {
+					pwok = (tos == 0) ? 23 : 0;
 				} else if (pwd.equals(passhash) || checkHash(passhash, "SHA-1", pwd) || checkHash(passhash, "SHA-512", pwd)) {
                                         // thanks GabrielSin for detecting some no-bcrypt inconsistencies here
-					loginok = (tos == 0) ? (!ServerConstants.BCRYPT_MIGRATION ? 23 : -23) : (!ServerConstants.BCRYPT_MIGRATION ? 0 : -10); // migrate to bcrypt
-				} else {
+					pwok = (tos == 0) ? (!ServerConstants.BCRYPT_MIGRATION ? 23 : -23) : (!ServerConstants.BCRYPT_MIGRATION ? 0 : -10); // migrate to bcrypt
+				}
+
+				if (pwok != 4 && getLoginState() > LOGIN_NOTLOGGEDIN) { // account flagged online: session takeover (顶号)
+					try {
+						// kicks any live in-game session; its disconnect path resets the DB flag synchronously
+						MapleSessionCoordinator.getInstance().forceDisconnectAccount(accId);
+					} catch (Exception e) {
+						FilePrinter.printError(FilePrinter.LOGIN_EXCEPTION, e);
+					}
+					if (getLoginState() > LOGIN_NOTLOGGEDIN) { // lingering flag (e.g. stale after a server restart): clear it
+						try (PreparedStatement ps2 = con.prepareStatement("UPDATE accounts SET loggedin = 0 WHERE id = ?")) {
+							ps2.setInt(1, accId);
+							ps2.executeUpdate();
+						}
+					}
+				}
+
+				if (pwok == 4) {
 					loggedIn = false;
 					loginok = 4;
+				} else {
+					loginok = pwok;
 				}
 			}
 		} catch (SQLException e) {
@@ -674,17 +691,34 @@ public class MapleClient {
 					return 3;
 				}
 
-				if (getLoginState() > LOGIN_NOTLOGGEDIN) { // already loggedin
-					loggedIn = false;
-					loginok = 7;
-				} else if (passhash.charAt(0) == '$' && passhash.charAt(1) == '2' && BCrypt.checkpw(pwd, passhash)) {
-					loginok = (tos == 0) ? 23 : 0;
+				int pwok = 4;
+				if (passhash.charAt(0) == '$' && passhash.charAt(1) == '2' && BCrypt.checkpw(pwd, passhash)) {
+					pwok = (tos == 0) ? 23 : 0;
 				} else if (pwd.equals(passhash) || checkHash(passhash, "SHA-1", pwd) || checkHash(passhash, "SHA-512", pwd)) {
                                         // thanks GabrielSin for detecting some no-bcrypt inconsistencies here
-					loginok = (tos == 0) ? (!ServerConstants.BCRYPT_MIGRATION ? 23 : -23) : (!ServerConstants.BCRYPT_MIGRATION ? 0 : -10); // migrate to bcrypt
-				} else {
+					pwok = (tos == 0) ? (!ServerConstants.BCRYPT_MIGRATION ? 23 : -23) : (!ServerConstants.BCRYPT_MIGRATION ? 0 : -10); // migrate to bcrypt
+				}
+
+				if (pwok != 4 && getLoginState() > LOGIN_NOTLOGGEDIN) { // account flagged online: session takeover (顶号)
+					try {
+						// kicks any live in-game session; its disconnect path resets the DB flag synchronously
+						MapleSessionCoordinator.getInstance().forceDisconnectAccount(accId);
+					} catch (Exception e) {
+						FilePrinter.printError(FilePrinter.LOGIN_EXCEPTION, e);
+					}
+					if (getLoginState() > LOGIN_NOTLOGGEDIN) { // lingering flag (e.g. stale after a server restart): clear it
+						try (PreparedStatement ps2 = con.prepareStatement("UPDATE accounts SET loggedin = 0 WHERE id = ?")) {
+							ps2.setInt(1, accId);
+							ps2.executeUpdate();
+						}
+					}
+				}
+
+				if (pwok == 4) {
 					loggedIn = false;
 					loginok = 4;
+				} else {
+					loginok = pwok;
 				}
 			}
 		} catch (SQLException e) {
