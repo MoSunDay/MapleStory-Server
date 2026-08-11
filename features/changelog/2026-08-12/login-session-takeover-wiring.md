@@ -26,7 +26,7 @@ Commit: (working-tree, pre-commit)
 | Rust 回归（本次未触及 Rust 代码） | `cargo test --workspace` | 74 passed / 0 failed |
 | e2e 登录顶号 | 无可用客户端测试 harness（mock_login_server 属客户端仓库） | 待用户客户端复测：①脏旗标场景（admin loggedin=2 重启遗留）→ 首次登录应直接放行；②双客户端场景 → 后登录者顶掉先登录者 |
 
-- 行数：MapleClient.java 1956 行为**既有**超限大文件，本次净增约 30 行（两处同构块），不做拆分（超范围）。
+- 行数：MapleClient.java 1678 行为**既有**超限大文件，本次净增约 30 行（两处同构块），不做拆分（超范围）。
 
 ## Impact Surface
 
