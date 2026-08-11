@@ -1,4 +1,4 @@
-Commit: (working-tree, pre-commit)
+Commit: 69ecc0c4
 
 # 单世界（Scania）× 单频道部署
 
