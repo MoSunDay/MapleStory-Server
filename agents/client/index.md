@@ -1,4 +1,4 @@
-Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
+Commit: 10b2d3e27b11655b4e9eb218b59eaa1c363989d6
 
 # client 模块 — 玩家域模型
 
@@ -31,6 +31,10 @@ Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
 ### 角色保存
 
 `MapleCharacter.saveCharToDB()` → 将全部状态写回 DB（属性/背包/技能/任务/Buff 等）
+
+### 角色创建
+
+`CreateCharHandler` 按客户端选择分发到 `BeginnerCreator`、`NoblesseCreator` 或 `LegendCreator`，三者通过 `CharacterFactoryRecipe` 生成初始角色并由 `MapleCharacter.insertNewChar()` 落库。普通新角色的 STR/DEX/INT/LUK 默认均为 20；角色创建协议不接收客户端自报四维，服务端配方是最终数据源。
 
 ### GM 命令
 

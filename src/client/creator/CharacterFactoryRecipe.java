@@ -35,9 +35,14 @@ import tools.Pair;
  * @author RonanLana
  */
 public class CharacterFactoryRecipe {
+    private static final int INITIAL_PRIMARY_STAT = 20;
+
     private MapleJob job;
     private int level, map, top, bottom, shoes, weapon;
-    private int str = 4, dex = 4, int_ = 4, luk = 4;
+    private int str = INITIAL_PRIMARY_STAT;
+    private int dex = INITIAL_PRIMARY_STAT;
+    private int int_ = INITIAL_PRIMARY_STAT;
+    private int luk = INITIAL_PRIMARY_STAT;
     private int maxHp = 50, maxMp = 5;
     private int ap = 0, sp = 0;
     private int meso = 0;
