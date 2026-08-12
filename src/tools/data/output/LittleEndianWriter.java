@@ -78,23 +78,28 @@ public interface LittleEndianWriter {
     public void writeLong(long l);
 
     /**
-     * Writes an ASCII string the the sequence.
+     * Writes a UTF-8 string to the sequence without a length prefix.
      *
-     * @param s The ASCII string to write.
+     * @param s The string to write.
      */
     void writeAsciiString(String s);
 
     /**
-     * Writes a null-terminated ASCII string to the sequence.
+     * Writes a UTF-8 string padded with zero bytes to an exact protocol width.
+     */
+    void writeFixedString(String s, int byteLength);
+
+    /**
+     * Writes a null-terminated UTF-8 string to the sequence.
      *
-     * @param s The ASCII string to write.
+     * @param s The string to write.
      */
     void writeNullTerminatedAsciiString(String s);
 
     /**
-     * Writes a maple-convention ASCII string to the sequence.
+     * Writes a Maple convention length-prefixed UTF-8 string.
      *
-     * @param s The ASCII string to use maple-convention to write.
+     * @param s The string to write.
      */
     void writeMapleAsciiString(String s);
 

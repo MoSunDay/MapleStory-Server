@@ -23,6 +23,7 @@ package tools.data.input;
 
 import java.awt.Point;
 import java.io.ByteArrayOutputStream;
+import tools.data.Utf8StringCodec;
 
 /**
  * Provides a generic interface to a Little Endian stream of bytes.
@@ -123,17 +124,13 @@ public class GenericLittleEndianAccessor implements LittleEndianAccessor {
     }
 
     /**
-     * Reads an ASCII string from the stream with length <code>n</code>.
+     * Reads a UTF-8 string from exactly <code>n</code> bytes.
      *
      * @param n Number of characters to read.
      * @return The string read.
      */
     public final String readAsciiString(int n) {
-        char ret[] = new char[n];
-        for (int x = 0; x < n; x++) {
-            ret[x] = (char) readByte();
-        }
-        return String.valueOf(ret);
+        return Utf8StringCodec.decode(read(n));
     }
 
     /**
@@ -151,12 +148,7 @@ public class GenericLittleEndianAccessor implements LittleEndianAccessor {
             }
             baos.write(b);
         }
-        byte[] buf = baos.toByteArray();
-        char[] chrBuf = new char[buf.length];
-        for (int x = 0; x < buf.length; x++) {
-            chrBuf[x] = (char) buf[x];
-        }
-        return String.valueOf(chrBuf);
+        return Utf8StringCodec.decode(baos.toByteArray());
     }
 
     /**
@@ -170,7 +162,7 @@ public class GenericLittleEndianAccessor implements LittleEndianAccessor {
     }
 
     /**
-     * Reads a MapleStory convention lengthed ASCII string.
+     * Reads a MapleStory convention length-prefixed UTF-8 string.
      * This consists of a short integer telling the length of the string,
      * then the string itself.
      *
@@ -178,7 +170,7 @@ public class GenericLittleEndianAccessor implements LittleEndianAccessor {
      */
     @Override
     public String readMapleAsciiString() {
-        return readAsciiString(readShort());
+        return readAsciiString(readShort() & 0xFFFF);
     }
 
     /**

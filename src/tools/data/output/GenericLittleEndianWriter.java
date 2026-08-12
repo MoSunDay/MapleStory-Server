@@ -22,8 +22,7 @@
 package tools.data.output;
 
 import java.awt.Point;
-import java.nio.charset.Charset;
-import constants.CharsetConstants.MapleLanguageType;
+import tools.data.Utf8StringCodec;
 
 /**
  * Provides a generic writer of a little-endian sequence of bytes.
@@ -33,7 +32,6 @@ import constants.CharsetConstants.MapleLanguageType;
  * @since Revision 323
  */
 public class GenericLittleEndianWriter implements LittleEndianWriter {
-    private static Charset ASCII = Charset.forName(MapleLanguageType.LANGUAGE_US.getAscii());
     private ByteOutputStream bos;
 
     /**
@@ -114,30 +112,39 @@ public class GenericLittleEndianWriter implements LittleEndianWriter {
     }
 
     /**
-     * Writes an ASCII string the the stream.
+     * Writes a UTF-8 string to the stream without a length prefix.
      *
-     * @param s The ASCII string to write.
+     * @param s The string to write.
      */
     @Override
     public void writeAsciiString(String s) {
-        write(s.getBytes(ASCII));
+        write(Utf8StringCodec.encode(s));
+    }
+
+    @Override
+    public void writeFixedString(String s, int byteLength) {
+        write(Utf8StringCodec.encodeFixed(s, byteLength));
     }
 
     /**
-     * Writes a maple-convention ASCII string to the stream.
+     * Writes a Maple convention length-prefixed UTF-8 string.
      *
-     * @param s The ASCII string to use maple-convention to write.
+     * @param s The string to write.
      */
     @Override
     public void writeMapleAsciiString(String s) {
-        writeShort((short) s.length());
-        writeAsciiString(s);
+        byte[] encoded = Utf8StringCodec.encode(s);
+        if (encoded.length > 0xFFFF) {
+            throw new IllegalArgumentException("Maple string exceeds 65535 UTF-8 bytes");
+        }
+        writeShort(encoded.length);
+        write(encoded);
     }
 
     /**
-     * Writes a null-terminated ASCII string to the stream.
+     * Writes a null-terminated UTF-8 string to the stream.
      *
-     * @param s The ASCII string to write.
+     * @param s The string to write.
      */
     @Override
     public void writeNullTerminatedAsciiString(String s) {

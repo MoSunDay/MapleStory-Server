@@ -45,6 +45,11 @@ import org.apache.mina.core.session.IoSession;
 
 public final class LoginPasswordHandler implements MaplePacketHandler {
 
+    private static final int ACCOUNT_MIN_LENGTH = 4;
+    private static final int ACCOUNT_MAX_LENGTH = 12;
+    private static final int PASSWORD_MIN_LENGTH = 4;
+    private static final int PASSWORD_MAX_LENGTH = 12;
+
     @Override
     public boolean validateState(MapleClient c) {
         return !c.isLoggedIn();
@@ -59,6 +64,34 @@ public final class LoginPasswordHandler implements MaplePacketHandler {
     private static String getRemoteIp(IoSession session) {
         return ((InetSocketAddress) session.getRemoteAddress()).getAddress().getHostAddress();
     }
+
+    private static boolean isValidAccountName(String login) {
+        if (login.length() < ACCOUNT_MIN_LENGTH || login.length() > ACCOUNT_MAX_LENGTH) {
+            return false;
+        }
+
+        for (int i = 0; i < login.length(); i++) {
+            char c = login.charAt(i);
+            if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isValidPassword(String password) {
+        if (password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH) {
+            return false;
+        }
+
+        for (int i = 0; i < password.length(); i++) {
+            char c = password.charAt(i);
+            if (c < 0x21 || c > 0x7E) {
+                return false;
+            }
+        }
+        return true;
+    }
     
     @Override
     public final void handlePacket(SeekableLittleEndianAccessor slea, MapleClient c) {
@@ -71,6 +104,11 @@ public final class LoginPasswordHandler implements MaplePacketHandler {
         String login = slea.readMapleAsciiString();
         String pwd = slea.readMapleAsciiString();
         c.setAccountName(login);
+
+        if (c.hasBannedIP()) {
+            c.announce(MaplePacketCreator.getLoginFailed(3));
+            return;
+        }
         
         slea.skip(6);   // localhost masked the initial part with zeroes...
         byte[] hwidNibbles = slea.read(4);
@@ -80,6 +118,11 @@ public final class LoginPasswordHandler implements MaplePacketHandler {
         PreparedStatement ps = null;
 
         if (ServerConstants.AUTOMATIC_REGISTER && loginok == 5) {
+            if (!isValidAccountName(login) || !isValidPassword(pwd)) {
+                c.announce(MaplePacketCreator.getLoginFailed(5));
+                return;
+            }
+
             try {
                 con = DatabaseConnection.getConnection();
                 ps = con.prepareStatement("INSERT INTO accounts (name, password, birthday, tempban) VALUES (?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS); //Jayd: Added birthday, tempban
@@ -117,7 +160,7 @@ public final class LoginPasswordHandler implements MaplePacketHandler {
             }
         }
 
-        if (c.hasBannedIP() || c.hasBannedMac()) {
+        if (c.hasBannedMac()) {
             c.announce(MaplePacketCreator.getLoginFailed(3));
             return;
         }

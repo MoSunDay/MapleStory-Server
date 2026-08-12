@@ -31,17 +31,22 @@ import tools.FilePrinter;
 import tools.LogHelper;
 import tools.MaplePacketCreator;
 import tools.data.input.SeekableLittleEndianAccessor;
+import tools.data.Utf8StringCodec;
 
 public final class GeneralChatHandler extends AbstractMaplePacketHandler {    
 	@Override
         public final void handlePacket(SeekableLittleEndianAccessor slea, MapleClient c) {
                 String s = slea.readMapleAsciiString();
                 MapleCharacter chr = c.getPlayer();
+                if (s.isEmpty()) {
+                        c.announce(MaplePacketCreator.enableActions());
+                        return;
+                }
                 if(chr.getAutobanManager().getLastSpam(7) + 200 > currentServerTime()) {
                         c.announce(MaplePacketCreator.enableActions());
                         return;
                 }
-                if (s.length() > Byte.MAX_VALUE && !chr.isGM()) {
+                if (Utf8StringCodec.encodedLength(s) > Byte.MAX_VALUE && !chr.isGM()) {
                         AutobanFactory.PACKET_EDIT.alert(c.getPlayer(), c.getPlayer().getName() + " tried to packet edit in General Chat.");
                         FilePrinter.printError(FilePrinter.EXPLOITS + c.getPlayer().getName() + ".txt", c.getPlayer().getName() + " tried to send text with length of " + s.length());
                         c.disconnect(true, false);

@@ -35,12 +35,7 @@ import tools.HexTool;
 import tools.MaplePacketCreator;
 import tools.data.input.SeekableLittleEndianAccessor;
 import client.MapleClient;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import org.apache.mina.core.session.IoSession;
 
 public final class LoginEmailHandler implements MaplePacketHandler {
@@ -48,12 +43,6 @@ public final class LoginEmailHandler implements MaplePacketHandler {
     @Override
     public boolean validateState(MapleClient c) {
         return !c.isLoggedIn();
-    }
-
-    private static String hashpwSHA512(String pwd) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest digester = MessageDigest.getInstance("SHA-512");
-        digester.update(pwd.getBytes("UTF-8"), 0, pwd.length());
-        return HexTool.toString(digester.digest()).replace(" ", "").toLowerCase();
     }
 
     private static String getRemoteIp(IoSession session) {
@@ -78,29 +67,6 @@ public final class LoginEmailHandler implements MaplePacketHandler {
 
         Connection con = null;
         PreparedStatement ps = null;
-
-        if (ServerConstants.AUTOMATIC_REGISTER && loginok == 5) {
-            try {
-                con = DatabaseConnection.getConnection();
-                ps = con.prepareStatement("INSERT INTO accounts (name, password, birthday, tempban) VALUES (?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS); //Jayd: Added birthday, tempban
-                ps.setString(1, login);
-                ps.setString(2, ServerConstants.BCRYPT_MIGRATION ? BCrypt.hashpw(pwd, BCrypt.gensalt(12)) : hashpwSHA512(pwd));
-                ps.setString(3, "2018-06-20"); //Jayd's idea: was added to solve the MySQL 5.7 strict checking (birthday)
-                ps.setString(4, "2018-06-20"); //Jayd's idea: was added to solve the MySQL 5.7 strict checking (tempban)
-                ps.executeUpdate();
-                
-                ResultSet rs = ps.getGeneratedKeys();
-                rs.next();
-                c.setAccID(rs.getInt(1));
-                rs.close();
-            } catch (SQLException | NoSuchAlgorithmException | UnsupportedEncodingException e) {
-                c.setAccID(-1);
-                e.printStackTrace();
-            } finally {
-                disposeSql(con, ps);
-                loginok = c.login(login, pwd, HexTool.toCompressedString(hwidNibbles));
-            }
-        }
 
         if (ServerConstants.BCRYPT_MIGRATION && (loginok <= -10)) { // -10 means migration to bcrypt, -23 means TOS wasn't accepted
             try {

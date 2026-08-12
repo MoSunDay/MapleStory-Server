@@ -50,7 +50,7 @@ public class ServerConstants {
     public static final boolean ENABLE_PIN = false;                         // Pick true/false to enable or disable Pin.
     public static final int BYPASS_PIC_EXPIRATION = 0;                      // Enables PIC bypass, which will remain active for that account by that client machine for N minutes. Set 0 to disable.
     public static final int BYPASS_PIN_EXPIRATION = 0;                      // Enables PIN bypass, which will remain active for that account by that client machine for N minutes. Set 0 to disable.
-    public static final boolean AUTOMATIC_REGISTER = false;                 // Automatically register players when they login with a nonexistent username.
+    public static final boolean AUTOMATIC_REGISTER = true;                  // Automatically register valid players when they login with a nonexistent username.
     public static final boolean BCRYPT_MIGRATION = true;                    // Performs a migration from old SHA-1 and SHA-512 password to bcrypt.
     public static final boolean COLLECTIVE_CHARSLOT = false;                // Available character slots are contabilized globally rather than per world server.
     public static final boolean DETERRED_MULTICLIENT = false;               // Enables multi-client and suspicious remote IP detection on the login system. Besides blocking logging in with several client sessions on the same machine, this also blocks suspicious login attempts for players that tries to login on an account using several diferent remote addresses.

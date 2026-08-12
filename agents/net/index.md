@@ -43,6 +43,10 @@ Client TCP → NioSocketAcceptor → MaplePacketDecoder（解密）
     → MaplePacketCreator 构建响应 → MaplePacketEncoder（加密）→ Client
 ```
 
+### 登录自动注册
+
+`LoginPasswordHandler` 在 `AUTOMATIC_REGISTER` 开启且账号不存在时，只接受 4–12 位 ASCII 字母数字账号和 4–12 位非空白可打印 ASCII 密码；合法凭据以 BCrypt cost 12 写入账号表，再重试原登录流程。新账号先返回 TOS 状态，`AcceptToSHandler` 接受后完成认证。IP 封禁检查先于建号，MAC 封禁检查仍在认证结果处理阶段；邮箱登录处理器不会触发自动建号。
+
 ### 包处理器分类
 
 | 类别 | 包路径 | 处理器数量 | 典型处理器 |

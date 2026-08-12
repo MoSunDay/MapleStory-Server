@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `bbs_replies` (
 CREATE TABLE IF NOT EXISTS `bbs_threads` (
   `threadid` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `postercid` int(10) unsigned NOT NULL,
-  `name` varchar(26) NOT NULL DEFAULT '',
+  `name` varchar(26) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `timestamp` bigint(20) unsigned NOT NULL,
   `icon` smallint(5) unsigned NOT NULL,
   `replycount` smallint(5) unsigned NOT NULL DEFAULT '0',
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `characters` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `accountid` int(11) NOT NULL DEFAULT '0',
   `world` int(11) NOT NULL DEFAULT '0',
-  `name` varchar(13) NOT NULL DEFAULT '',
+  `name` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `level` int(11) NOT NULL DEFAULT '1',
   `exp` int(11) NOT NULL DEFAULT '0',
   `gachaexp` int(11) NOT NULL DEFAULT '0',
@@ -12828,7 +12828,7 @@ CREATE TABLE IF NOT EXISTS `dueyitems` (
 CREATE TABLE IF NOT EXISTS `dueypackages` (
   `PackageId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `ReceiverId` int(10) unsigned NOT NULL,
-  `SenderName` varchar(13) NOT NULL,
+  `SenderName` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Mesos` int(10) unsigned DEFAULT '0',
   `TimeStamp` varchar(10) NOT NULL,
   `Checked` tinyint(1) unsigned DEFAULT '1',
@@ -12859,7 +12859,7 @@ CREATE TABLE IF NOT EXISTS `family_character` (
   `reputation` int(11) NOT NULL,
   `todaysrep` int(11) NOT NULL,
   `totaljuniors` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `juniorsadded` int(11) NOT NULL,
   `totalreputation` int(11) NOT NULL,
   PRIMARY KEY (`cid`),
@@ -12878,7 +12878,7 @@ CREATE TABLE IF NOT EXISTS `fredstorage` (
 CREATE TABLE IF NOT EXISTS `gifts` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `to` int(11) NOT NULL,
-  `from` varchar(13) NOT NULL,
+  `from` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `message` tinytext NOT NULL,
   `sn` int(10) unsigned NOT NULL,
   `ringid` int(10) NOT NULL,
@@ -16357,7 +16357,7 @@ CREATE TABLE IF NOT EXISTS `mts_items` (
   `locked` int(11) DEFAULT '0',
   `isequip` int(1) DEFAULT '0',
   `owner` varchar(16) DEFAULT '',
-  `sellername` varchar(16) NOT NULL,
+  `sellername` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `sell_ends` varchar(16) NOT NULL,
   `transfer` int(2) DEFAULT '0',
   `vicious` int(2) unsigned NOT NULL DEFAULT '0',
@@ -16368,9 +16368,9 @@ CREATE TABLE IF NOT EXISTS `mts_items` (
 CREATE TABLE IF NOT EXISTS `newyear` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `senderid` int(10) NOT NULL DEFAULT '-1',
-  `sendername` varchar(13) DEFAULT '',
+  `sendername` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
   `receiverid` int(10) NOT NULL DEFAULT '-1',
-  `receivername` varchar(13) DEFAULT '',
+  `receivername` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
   `message` varchar(120) DEFAULT '',
   `senderdiscard` tinyint(1) NOT NULL DEFAULT '0',
   `receiverdiscard` tinyint(1) NOT NULL DEFAULT '0',
@@ -16382,8 +16382,8 @@ CREATE TABLE IF NOT EXISTS `newyear` (
 
 CREATE TABLE IF NOT EXISTS `notes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `to` varchar(13) NOT NULL DEFAULT '',
-  `from` varchar(13) NOT NULL DEFAULT '',
+  `to` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `from` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `message` text NOT NULL,
   `timestamp` bigint(20) unsigned NOT NULL,
   `fame` int(11) NOT NULL DEFAULT '0',
@@ -16491,7 +16491,7 @@ CREATE TABLE IF NOT EXISTS `playerdiseases` (
 
 CREATE TABLE IF NOT EXISTS `playernpcs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(13) NOT NULL,
+  `name` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `hair` int(11) NOT NULL,
   `face` int(11) NOT NULL,
   `skin` int(11) NOT NULL,
@@ -17445,7 +17445,7 @@ CREATE TABLE IF NOT EXISTS `rings` (
   `partnerRingId` int(11) NOT NULL DEFAULT '0',
   `partnerChrId` int(11) NOT NULL DEFAULT '0',
   `itemid` int(11) NOT NULL DEFAULT '0',
-  `partnername` varchar(255) NOT NULL,
+  `partnername` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
