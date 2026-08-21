@@ -1,4 +1,4 @@
-Commit: ee5cc0ff39cc14da1ec1a7593c7501a18f560089
+Commit: 02800fbae35445b7f76e4a7f46627b1211843ee1
 
 # MapleStory-Server 逻辑地图
 

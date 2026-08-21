@@ -1,4 +1,4 @@
-Commit: 74d3989ca4af3fdadf9c620286311e47637c6875
+Commit: edf044cf9f032b2a13cf7a30a7d94421864d33dd
 
 # 账号自动注册约束
 
