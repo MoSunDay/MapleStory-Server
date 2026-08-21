@@ -316,6 +316,13 @@ public class ServerConstants {
     // Debug Variables
     public static int DEBUG_VALUES[] = new int[10];                         // Field designed for packet testing purposes
 
+    private static String configuredValue(Properties properties, String key, String environmentKey) {
+        String environmentValue = System.getenv(environmentKey);
+        return environmentValue == null || environmentValue.isEmpty()
+                ? properties.getProperty(key)
+                : environmentValue;
+    }
+
     // Properties
     static {
         Properties p = new Properties();
@@ -330,9 +337,9 @@ public class ServerConstants {
             ServerConstants.HOST = p.getProperty("HOST");
 
             // Sql Database
-            ServerConstants.DB_URL = p.getProperty("URL");
-            ServerConstants.DB_USER = p.getProperty("DB_USER");
-            ServerConstants.DB_PASS = p.getProperty("DB_PASS");
+            ServerConstants.DB_URL = configuredValue(p, "URL", "MAPLE_DB_URL");
+            ServerConstants.DB_USER = configuredValue(p, "DB_USER", "MAPLE_DB_USER");
+            ServerConstants.DB_PASS = configuredValue(p, "DB_PASS", "MAPLE_DB_PASS");
 
             // java8 And Shutdownhook
             ServerConstants.JAVA_8 = p.getProperty("JAVA8").equalsIgnoreCase("TRUE");
