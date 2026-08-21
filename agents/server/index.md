@@ -1,4 +1,4 @@
-Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
+Commit: 327d5c87ecb0d83ee8f9fc360d8c3df656d1a4f7
 
 # server 模块 — 游戏世界逻辑
 
@@ -23,6 +23,8 @@ Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
 | `MapleStatEffect` | `server.MapleStatEffect` | 技能/Buff 效果计算（伤害/治疗/Buff） |
 | `MapleQuest` | `server.quest.MapleQuest` | 任务系统：WZ 数据驱动 + 条件/动作 |
 | `TimerManager` | `server.TimerManager` | 全局定时任务调度器（ScheduledThreadPoolExecutor 封装） |
+| `PartyRewardPolicy` | `server.party.PartyRewardPolicy` | 组队金币与经验的无状态奖励规则及等级资格判断 |
+| `NpcShopSalePolicy` | `server.shop.NpcShopSalePolicy` | NPC 单件/批量售卖数量、分类和现金物品拒绝规则 |
 
 ## 子包
 
@@ -54,7 +56,11 @@ Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
 
 ### 交易/商店
 
-`MapleTrade`（面对面交易）和 `MaplePlayerShop`/`MapleHiredMerchant`（自由市场）管理买卖逻辑。
+`MapleTrade`（面对面交易）和 `MaplePlayerShop`/`MapleHiredMerchant`（自由市场）管理玩家交易。NPC 商店支持对指定非现金物品单件售卖，以及在背包锁内按实时快照批量售卖 EQUIP/USE/SETUP/ETC 当前分类；现金标志与 WZ 现金属性双重识别，任何现金物品均不进入售卖结算。
+
+### 组队奖励
+
+怪物经验先按队伍聚合原有伤害份额，再把该队伍份额完整复制给每位符合最低等级和反吸经验等级差条件的同地图成员，不再追加人数、最高等级或最高伤害倍率。符合现有拾取范围的每位组队成员也各自获得完整金币掉落金额。
 
 ## 并发模型
 

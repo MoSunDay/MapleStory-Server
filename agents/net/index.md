@@ -1,4 +1,4 @@
-Commit: 13254d0db7000b8952b8bc1a0e1532a63ea2a46b
+Commit: 327d5c87ecb0d83ee8f9fc360d8c3df656d1a4f7
 
 # net 模块 — 网络层与服务器生命周期
 
@@ -22,6 +22,7 @@ Commit: 13254d0db7000b8952b8bc1a0e1532a63ea2a46b
 | `MapleServerHandler` | `net.MapleServerHandler` | MINA IoHandler：会话创建/销毁、包路由 |
 | `PacketProcessor` | `net.PacketProcessor` | opcode 索引的处理器查找表，登录/频道两套 |
 | `MapleCodecFactory` | `net.mina.MapleCodecFactory` | MINA codec：AES-OFB + 自定义字节滚动加密/解密 |
+| `MapleSessionCoordinator` / `SessionSaveFence` | `net.server.coordinator` | 维护账号当前会话与单调代次；协调新会话注册、旧会话失效和整角色保存互斥 |
 
 ## 主流程
 
@@ -57,12 +58,15 @@ Client TCP → NioSocketAcceptor → MaplePacketDecoder（解密）
 
 `PLAYER_DC(0x0C)` 在登录服和频道服共用 `PlayerDisconnectHandler`：服务端收到标准登出请求后主动关闭 MINA 会话，使 `MapleServerHandler.sessionClosed` 统一执行角色保存、在线状态释放和会话协调器清理。
 
+TCP EOF、异常关闭和主动登出最终进入同一断线链路。账号会话使用进程内单调 `sessionId` 作为保存代次；新会话注册与 `accounts.loggedin` 更新持有账号分片 permit，旧会话随后触发的异步断线只能清理自身，不能移除 `onlineClients` 中的新会话，也不能取得整角色保存 permit。
+
 ## 并发模型
 
 - `Server`：srvLock / wldLock(ReadWriteLock) / lgnLock(ReadWriteLock) / disLock
 - `World`：chnLock / partyLock / accountCharsLock / suggestLock / srvMessagesLock + 多个子系统锁
 - `Channel`：merchantLock / lock / faceLock[] 分区锁（7 个调度器 × CHANNEL_LOCKS）
 - `MapleClient`：actionsSemaphore(7) / encoderLock / loginLocks[200] 分片
+- `SessionSaveFence`：200 个账号分片锁；会话代次切换与一次完整角色数据库事务互斥，避免“校验通过后、新会话插入、旧快照再提交”的检查—执行竞态
 - 全局 Worker 通过 `TimerManager`（ScheduledThreadPoolExecutor, 4 核心线程）调度
 
 ## 子包
