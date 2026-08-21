@@ -23,14 +23,14 @@ function action(mode, type, selection) {
 		if (status >= 0 && mode == 0) {
 			cm.dispose();
 			return;
-		}	
+		}
 		if (mode == 1)
 			status++;
 		else
 			status--;
-		if (status == 0) {	
+		if (status == 0) {
 			cm.sendNext("Hey, I'm #p" + cm.getNpc() + "#k, if you're not busy and all ... then can I hang out with you? I heard there are people gathering up around here for an #revent#k but I don't want to go there by myself ... Well, do you want to go check it out with me?");
-		} else if (status == 1) {	
+		} else if (status == 1) {
 			cm.sendSimple("Huh? What kind of an event? Well, that's...\r\n#L0##e1.#n#b What kind of an event is it?#k#l\r\n#L1##e2.#n#b Explain the event game to me.#k#l\r\n#L2##e3.#n#b Alright, let's go!#k#l\r\n#L3##e4.#n#bPlease exchance Certificate of straight Win to reward item.#k#l");
 		} else if (status == 2) {
 			if (selection == 0) {
@@ -48,11 +48,12 @@ function action(mode, type, selection) {
 					cm.sendNext("You've entered the event already in the past hour.");
 				} else if (!cm.canHold(4031019)) {
 					cm.sendNext("Save up some space in your inventory.");
-				} else if (cm.getChannelServer().getEvent() > -1 && !cm.haveItem(4031019)) {
-					cm.getPlayer().saveLocation("EVENT");
-					cm.getPlayer().setChalkboard(null);
-					marr.setCustomData("" + cm.getCurrentTime());
-					cm.warp(cm.getChannelServer().getEvent(), cm.getChannelServer().getEvent() == 109080000 || cm.getChannelServer().getEvent() == 109080010 ? 0 : "join00");
+				} else if (cm.getChannelEventMap() > -1 && !cm.haveItem(4031019)) {
+					if (cm.joinChannelEvent()) {
+						marr.setCustomData("" + cm.getCurrentTime());
+					} else {
+						cm.sendNext("Either the event has not been started, you already have the #bScroll of Secrets#k, or you have already participated in this event within the last 24 hours. Please try again later!");
+					}
 				} else {
 					cm.sendNext("Either the event has not been started, you already have the #bScroll of Secrets#k, or you have already participated in this event within the last 24 hours. Please try again later!");
 				}

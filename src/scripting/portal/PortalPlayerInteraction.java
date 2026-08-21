@@ -78,10 +78,10 @@ public class PortalPlayerInteraction extends AbstractPlayerInteraction {
                 ex.printStackTrace();
             }
         }
-        
+
         return getPlayer().getLevel() >= 30;
     }
-    
+
     public boolean forceStartQuest(int id) {
             return forceStartQuest(id, 9010000);
     }
@@ -89,7 +89,7 @@ public class PortalPlayerInteraction extends AbstractPlayerInteraction {
     public boolean forceStartQuest(int id, int npc) {
             return MapleQuest.getInstance(id).forceStart(getPlayer(), npc);
     }
-    
+
     public boolean forceCompleteQuest(int id) {
             return forceCompleteQuest(id, 9010000);
     }
@@ -97,7 +97,7 @@ public class PortalPlayerInteraction extends AbstractPlayerInteraction {
     public boolean forceCompleteQuest(int id, int npc) {
             return MapleQuest.getInstance(id).forceComplete(getPlayer(), npc);
     }
-    
+
     public void blockPortal() {
         c.getPlayer().blockPortal(getPortal().getScriptName());
     }
@@ -108,5 +108,15 @@ public class PortalPlayerInteraction extends AbstractPlayerInteraction {
 
     public void playPortalSound() {
         c.announce(MaplePacketCreator.playPortalSound());
+    }
+
+    public void lockUI2() {
+    }
+
+    public void setDirectionStatus(boolean enable) {
+    }
+
+    public void setNPCValue(int npcid, String value) {
+        updateInfo(String.valueOf(npcid), value);
     }
 }
