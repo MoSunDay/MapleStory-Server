@@ -51,6 +51,7 @@ import constants.ItemConstants;
 import constants.ServerConstants;
 import java.util.Collections;
 import net.server.audit.locks.MonitoredLockType;
+import server.shop.CashItemIdentity;
 
 /*
  * @author Flav
@@ -308,7 +309,7 @@ public class CashShop {
             ps.close();
 
             for (Pair<Item, MapleInventoryType> item : factory.loadItems(accountId, false)) {
-                inventory.add(item.getLeft());
+                addToInventory(item.getLeft());
             }
 
             ps = con.prepareStatement("SELECT `sn` FROM `wishlists` WHERE `charid` = ?");
@@ -400,6 +401,7 @@ public class CashShop {
     public void addToInventory(Item item) {
         lock.lock();
         try {
+            CashItemIdentity.markCashOrigin(item);
             inventory.add(item);
         } finally {
             lock.unlock();

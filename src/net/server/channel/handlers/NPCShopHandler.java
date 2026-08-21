@@ -23,6 +23,7 @@ package net.server.channel.handlers;
 
 import client.MapleClient;
 import client.autoban.AutobanFactory;
+import client.inventory.MapleInventoryType;
 import constants.ItemConstants;
 import net.AbstractMaplePacketHandler;
 import tools.FilePrinter;
@@ -56,6 +57,9 @@ public final class NPCShopHandler extends AbstractMaplePacketHandler {
             c.getPlayer().getShop().recharge(c, slot);
         } else if (bmode == 3) { // leaving :(
             c.getPlayer().setShop(null);
+        } else if (bmode == 4) { // sell every eligible item in one inventory tab
+            MapleInventoryType type = MapleInventoryType.getByType(slea.readByte());
+            c.getPlayer().getShop().sellAll(c, type);
         }
     }
 }

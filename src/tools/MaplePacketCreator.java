@@ -52,6 +52,7 @@ import server.CashShop.CashItem;
 import server.CashShop.CashItemFactory;
 import server.CashShop.SpecialCashItem;
 import server.events.gm.MapleSnowball;
+import server.shop.CashItemIdentity;
 import server.life.MapleMonster;
 import server.life.MapleNPC;
 import server.life.MaplePlayerNPC;
@@ -360,7 +361,7 @@ public class MaplePacketCreator {
 
     protected static void addItemInfo(final MaplePacketLittleEndianWriter mplew, Item item, boolean zeroPosition) {
         MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
-        boolean isCash = ii.isCash(item.getItemId());
+        boolean isCash = CashItemIdentity.isCashItem(item, ii);
         boolean isPet = item.getPetId() > -1;
         boolean isRing = false;
         Equip equip = null;

@@ -24,6 +24,7 @@ package server;
 import client.inventory.manipulator.MapleInventoryManipulator;
 import client.MapleClient;
 import client.inventory.Item;
+import client.inventory.MapleInventory;
 import client.inventory.MapleInventoryType;
 import client.inventory.MaplePet;
 import constants.ItemConstants;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import server.shop.CashItemIdentity;
+import server.shop.NpcShopSalePolicy;
 import tools.DatabaseConnection;
 import tools.MaplePacketCreator;
 
@@ -153,59 +156,82 @@ public class MapleShop {
         }
     }
 
-    private static boolean canSell(Item item, short quantity) {
-        if (item == null) { //Basic check
-            return false;
-        }
-        
-        short iQuant = item.getQuantity();
-        if (iQuant == 0xFFFF) {
-            iQuant = 1;
-        } else if(iQuant < 0) {
-            return false;
-        }
-        
-        if (!ItemConstants.isRechargeable(item.getItemId())) {
-            if (iQuant == 0 || quantity > iQuant) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    private static short getSellingQuantity(Item item, short quantity) {
-        if (ItemConstants.isRechargeable(item.getItemId())) {
-            quantity = item.getQuantity();
-            if (quantity == 0xFFFF) {
-                quantity = 1;
-            }
-        }
-        
-        return quantity;
-    }
-
     public void sell(MapleClient c, MapleInventoryType type, short slot, short quantity) {
-        if (quantity == 0xFFFF || quantity == 0) {
-            quantity = 1;
-        } else if (quantity < 0) {
+        if (type == null) {
+            c.announce(MaplePacketCreator.shopTransaction((byte) 0x5));
             return;
         }
-        
+
+        quantity = NpcShopSalePolicy.normalizeRequestedQuantity(quantity);
         Item item = c.getPlayer().getInventory(type).getItem((short) slot);
-        if(canSell(item, quantity)) {
-            quantity = getSellingQuantity(item, quantity);
-            MapleInventoryManipulator.removeFromSlot(c, type, (byte) slot, quantity, false);
-            
-            MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
-            int recvMesos = ii.getPrice(item.getItemId(), quantity);
-            if (recvMesos > 0) {
-                c.getPlayer().gainMeso(recvMesos, false);
-            }
-            c.announce(MaplePacketCreator.shopTransaction((byte) 0x8));
-        } else {
+        if (item == null) {
             c.announce(MaplePacketCreator.shopTransaction((byte) 0x5));
+            return;
         }
+
+        MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
+        boolean cash = CashItemIdentity.isCashItem(item, ii);
+        if (cash) {
+            c.announce(MaplePacketCreator.shopTransaction((byte) 0x10));
+            return;
+        }
+
+        boolean rechargeable = ItemConstants.isRechargeable(item.getItemId());
+        if (!NpcShopSalePolicy.canSell(cash, rechargeable, item.getQuantity(), quantity)) {
+            c.announce(MaplePacketCreator.shopTransaction((byte) 0x5));
+            return;
+        }
+
+        quantity = NpcShopSalePolicy.sellingQuantity(
+                rechargeable, item.getQuantity(), quantity);
+        MapleInventoryManipulator.removeFromSlot(c, type, slot, quantity, false);
+
+        int recvMesos = ii.getPrice(item.getItemId(), quantity);
+        if (recvMesos > 0) {
+            c.getPlayer().gainMeso(recvMesos, false);
+        }
+        c.announce(MaplePacketCreator.shopTransaction((byte) 0x8));
+    }
+
+    public void sellAll(MapleClient c, MapleInventoryType type) {
+        if (!NpcShopSalePolicy.supportsBulkSale(type)) {
+            byte result = type == MapleInventoryType.CASH ? (byte) 0x10 : (byte) 0x6;
+            c.announce(MaplePacketCreator.shopTransaction(result));
+            return;
+        }
+
+        MapleInventory inventory = c.getPlayer().getInventory(type);
+        MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
+        int soldSlots = 0;
+
+        inventory.lockInventory();
+        try {
+            List<Item> snapshot = new ArrayList<>(inventory.list());
+            for (Item item : snapshot) {
+                boolean cash = CashItemIdentity.isCashItem(item, ii);
+                boolean rechargeable = ItemConstants.isRechargeable(item.getItemId());
+                short available = item.getQuantity();
+                if (!NpcShopSalePolicy.canSell(cash, rechargeable, available, available)) {
+                    continue;
+                }
+
+                short sellingQuantity = NpcShopSalePolicy.sellingQuantity(
+                        rechargeable, available, available);
+                MapleInventoryManipulator.removeFromSlot(
+                        c, type, item.getPosition(), sellingQuantity, false);
+
+                int recvMesos = ii.getPrice(item.getItemId(), sellingQuantity);
+                if (recvMesos > 0) {
+                    c.getPlayer().gainMeso(recvMesos, false);
+                }
+                soldSlots++;
+            }
+        } finally {
+            inventory.unlockInventory();
+        }
+
+        c.announce(MaplePacketCreator.shopTransaction(
+                soldSlots > 0 ? (byte) 0x8 : (byte) 0x5));
     }
 
     public void recharge(MapleClient c, short slot) {
