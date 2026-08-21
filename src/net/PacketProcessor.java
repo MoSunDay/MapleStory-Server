@@ -29,6 +29,7 @@ import net.server.channel.handlers.*;
 import net.server.handlers.CustomPacketHandler;
 import net.server.handlers.KeepAliveHandler;
 import net.server.handlers.LoginRequiringNoOpHandler;
+import net.server.handlers.PlayerDisconnectHandler;
 import net.server.handlers.login.AcceptToSHandler;
 import net.server.handlers.login.AfterLoginHandler;
 import net.server.handlers.login.CharSelectedHandler;
@@ -102,6 +103,7 @@ public final class PacketProcessor {
 
         registerHandler(RecvOpcode.PONG, new KeepAliveHandler());
         registerHandler(RecvOpcode.CUSTOM_PACKET, new CustomPacketHandler());
+        registerHandler(RecvOpcode.PLAYER_DC, new PlayerDisconnectHandler());
         if (channel < 0) {
             //LOGIN HANDLERS
             registerHandler(RecvOpcode.ACCEPT_TOS, new AcceptToSHandler());

@@ -1,4 +1,4 @@
-Commit: ea0bee5e598775e27e5f0e2bd842a4cbc0ce7264
+Commit: 13254d0db7000b8952b8bc1a0e1532a63ea2a46b
 
 # net 模块 — 网络层与服务器生命周期
 
@@ -54,6 +54,8 @@ Client TCP → NioSocketAcceptor → MaplePacketDecoder（解密）
 | 登录 | `net.server.handlers.login/` | ~17 | LoginPasswordHandler, CreateCharHandler, ServerlistRequestHandler |
 | 频道 | `net.server.channel.handlers/` | ~130 | PlayerLoggedinHandler, CloseRangeDamageHandler, MovePlayerHandler, NPCTalkHandler |
 | 通用 | `net.server.handlers/` | 3 | KeepAliveHandler, CustomPacketHandler |
+
+`PLAYER_DC(0x0C)` 在登录服和频道服共用 `PlayerDisconnectHandler`：服务端收到标准登出请求后主动关闭 MINA 会话，使 `MapleServerHandler.sessionClosed` 统一执行角色保存、在线状态释放和会话协调器清理。
 
 ## 并发模型
 
