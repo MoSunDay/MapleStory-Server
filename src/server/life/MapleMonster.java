@@ -64,6 +64,7 @@ import server.TimerManager;
 import server.life.MapleLifeFactory.BanishInfo;
 import server.maps.MapleMap;
 import server.maps.MapleMapObjectType;
+import server.party.PartyRewardPolicy;
 import tools.MaplePacketCreator;
 import tools.Pair;
 import tools.Randomizer;
@@ -461,7 +462,9 @@ public class MapleMonster extends AbstractLoadedMapleLife {
         return takenDamage.containsKey(chr.getId());
     }
     
-    private void distributeExperienceToParty(int pid, float exp, int mostDamageCid, int minThresholdLevel, int killerLevel, Set<MapleCharacter> underleveled, Map<MapleCharacter, Float> partyExpReward) {
+    private void distributeExperienceToParty(int pid, float exp, int minThresholdLevel,
+                                             int killerLevel, Set<MapleCharacter> underleveled,
+                                             Map<MapleCharacter, Float> partyExpReward) {
         MapleCharacter pchar = getMap().getAnyCharacterFromParty(pid);  // thanks G h o s t, Alfred, Vcoc, BHB for poiting out a bug in detecting party members after membership transactions in a party took place
         
         List<MapleCharacter> members;
@@ -471,39 +474,14 @@ public class MapleMonster extends AbstractLoadedMapleLife {
             members = new LinkedList<>();
         }
         
-        List<MapleCharacter> expSharers = new LinkedList<>();
-        int expSharersMaxLevel = 1;
-        boolean hasMostDamageCid = false;
         for (MapleCharacter mc : members) {
-            if (mc.getId() == mostDamageCid) {
-                hasMostDamageCid = true;
-            }
-            
-            if (mc.getLevel() >= minThresholdLevel) {    //NO EXP WILL BE GIVEN for those who are underleveled!
-                if (Math.abs(killerLevel - mc.getLevel()) < ServerConstants.MIN_RANGELEVEL_TO_EXP_LEECH) {
-                    // thanks Thora for pointing out leech level limitation
-                    
-                    if (expSharersMaxLevel < mc.getLevel()) {
-                        expSharersMaxLevel = mc.getLevel();
-                    }
-                    expSharers.add(mc);
-                }
-            } else {
+            if (PartyRewardPolicy.canShareExperience(
+                    mc.getLevel(), minThresholdLevel, killerLevel,
+                    ServerConstants.MIN_RANGELEVEL_TO_EXP_LEECH)) {
+                partyExpReward.put(mc, PartyRewardPolicy.fullExperienceShare(exp));
+            } else if (mc.getLevel() < minThresholdLevel) {
                 underleveled.add(mc);
             }
-        }
-        
-        int numExpSharers = expSharers.size();
-        
-        // PARTY BONUS: 2p -> +2% , 3p -> +4% , 4p -> +6% , 5p -> +8% , 6p -> +10%
-        // MOST DAMAGE BONUS: 1.5x bonus
-        final float partyModifier = numExpSharers <= 1 ? 0.0f : 0.02f * (numExpSharers - 1);
-        final float mostDamageModifier = hasMostDamageCid ? 1.5f : 1.0f;
-        final float partyExp = exp * partyModifier * mostDamageModifier;
-        
-        for (MapleCharacter mc : expSharers) {
-            float levelPenaltyModifier = (float) Math.sqrt(((float) mc.getLevel()) / expSharersMaxLevel);
-            partyExpReward.put(mc, partyExp * levelPenaltyModifier);
         }
     }
 
@@ -605,9 +583,13 @@ public class MapleMonster extends AbstractLoadedMapleLife {
             }
         }
         
-        int mostDamageCid = this.getHighestDamagerId();
         for (Entry<Integer, Float> party : partyExp.entrySet()) {
-            distributeExperienceToParty(party.getKey(), party.getValue(), mostDamageCid, minThresholdLevel, killerLevel, underleveled, partyExpReward);
+            distributeExperienceToParty(party.getKey(), party.getValue(), minThresholdLevel,
+                    killerLevel, underleveled, partyExpReward);
+        }
+
+        for (MapleCharacter partyMember : partyExpReward.keySet()) {
+            personalExpReward.remove(partyMember);
         }
         
         for(MapleCharacter mc : underleveled) {
@@ -668,7 +650,6 @@ public class MapleMonster extends AbstractLoadedMapleLife {
             if (partyExp != null) {
                 partyExp *= getStatusExpMultiplier(attacker);
                 partyExp *= attacker.getExpRate();
-                partyExp *= ServerConstants.PARTY_BONUS_EXP_RATE;
             } else {
                 partyExp = 0.0f;
             }

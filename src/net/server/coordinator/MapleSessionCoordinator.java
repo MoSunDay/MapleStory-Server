@@ -70,7 +70,8 @@ public class MapleSessionCoordinator {
     }
     
     private final LoginStorage loginStorage = new LoginStorage();
-    private final Map<Integer, MapleClient> onlineClients = new HashMap<>();
+    private final ConcurrentHashMap<Integer, MapleClient> onlineClients = new ConcurrentHashMap<>();
+    private final SessionSaveFence sessionSaveFence = new SessionSaveFence();
     private final Set<String> onlineRemoteHwids = new HashSet<>();
     private final Map<String, Set<IoSession>> loginRemoteHosts = new HashMap<>();
     private final Set<String> pooledRemoteHosts = new HashSet<>();
@@ -228,18 +229,44 @@ public class MapleSessionCoordinator {
         return (MapleClient) session.getAttribute(MapleClient.CLIENT_KEY);
     }
     
-    public void updateOnlineSession(IoSession session) {
+    /**
+     * Installs the newest account session. The caller must close the returned
+     * permit after its login-state database update is complete.
+     */
+    public SessionSaveFence.FencePermit updateOnlineSession(IoSession session) {
         MapleClient client = getSessionClient(session);
         
-        if (client != null) {
-            int accountId = client.getAccID();
-            MapleClient ingameClient = onlineClients.get(accountId);
-            if (ingameClient != null) {     // thanks MedicOP for finding out a loss of loggedin account uniqueness when using the CMS "Unstuck" feature
+        if (client == null) {
+            return null;
+        }
+
+        int accountId = client.getAccID();
+        SessionSaveFence.FencePermit sessionPermit = sessionSaveFence.tryEstablishSession(accountId, client.getSessionId());
+        if (sessionPermit == null) {
+            client.forceDisconnect();
+            return null;
+        }
+
+        try {
+            MapleClient ingameClient = onlineClients.put(accountId, client);
+            if (ingameClient != null && ingameClient.getSessionId() != client.getSessionId()) {
+                // Register the new generation before disconnecting the old one.
+                // Its delayed disconnect is therefore unable to save a stale
+                // whole-character snapshot over this session.
                 ingameClient.forceDisconnect();
             }
-
-            onlineClients.put(accountId, client);
+            return sessionPermit;
+        } catch (RuntimeException ex) {
+            sessionPermit.close();
+            throw ex;
         }
+    }
+
+    public SessionSaveFence.FencePermit tryAcquireCurrentSession(MapleClient client) {
+        if (client == null || client.getAccID() <= 0) {
+            return null;
+        }
+        return sessionSaveFence.tryAcquireCurrentSession(client.getAccID(), client.getSessionId());
     }
     
     /**
@@ -338,7 +365,7 @@ public class MapleSessionCoordinator {
                 
                 // do not remove an online game session here, only login session
                 if (loggedClient != null && loggedClient.getSessionId() == client.getSessionId()) {
-                    onlineClients.remove(client.getAccID());
+                    onlineClients.remove(client.getAccID(), client);
                 }
             }
         }
@@ -496,13 +523,13 @@ public class MapleSessionCoordinator {
         MapleClient client = getSessionClient(session);
         if (client != null) {
             if (hwid != null) { // is a game session
-                onlineClients.remove(client.getAccID());
+                onlineClients.remove(client.getAccID(), client);
             } else {
                 MapleClient loggedClient = onlineClients.get(client.getAccID());
                 
                 // do not remove an online game session here, only login session
                 if (loggedClient != null && loggedClient.getSessionId() == client.getSessionId()) {
-                    onlineClients.remove(client.getAccID());
+                    onlineClients.remove(client.getAccID(), client);
                 }
             }
         }

@@ -40,6 +40,8 @@ import net.server.audit.locks.MonitoredLockType;
 import net.server.audit.locks.factory.MonitoredReentrantLockFactory;
 import net.server.channel.handlers.PartyOperationHandler;
 import net.server.coordinator.MapleInviteCoordinator;
+import net.server.coordinator.MapleSessionCoordinator;
+import net.server.coordinator.SessionSaveFence;
 import net.server.guild.MapleAlliance;
 import net.server.guild.MapleGuild;
 import net.server.guild.MapleGuildCharacter;
@@ -56,6 +58,7 @@ import server.life.*;
 import server.loot.MapleLootManager;
 import server.maps.*;
 import server.maps.MapleMiniGame.MiniGameResult;
+import server.party.PartyRewardPolicy;
 import server.partyquest.MonsterCarnival;
 import server.partyquest.MonsterCarnivalParty;
 import server.partyquest.PartyQuest;
@@ -2906,7 +2909,7 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
                         if (!mapitem.isPlayerDrop() || mapitem.getDropper().getObjectId() == client.getPlayer().getObjectId()) {
                             if (mapitem.getMeso() > 0) {
                                 if (!mpcs.isEmpty()) {
-                                    int mesosamm = mapitem.getMeso() / mpcs.size();
+                                    int mesosamm = PartyRewardPolicy.fullMesoShare(mapitem.getMeso());
 
                                     for (MapleCharacter partymem : mpcs)
                                         if (partymem.isLoggedinWorld())
@@ -2952,7 +2955,7 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
 
                     if (mapitem.getMeso() > 0) {
                         if (!mpcs.isEmpty()) {
-                            int mesosamm = mapitem.getMeso() / mpcs.size();
+                            int mesosamm = PartyRewardPolicy.fullMesoShare(mapitem.getMeso());
 
                             for (MapleCharacter partymem : mpcs)
                                 if (partymem.isLoggedinWorld())
@@ -8314,25 +8317,42 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
     }
 
     public void saveCharToDB() {
+        saveCharToDB(client);
+    }
+
+    public void saveCharToDB(final MapleClient savingClient) {
         if (ServerConstants.USE_AUTOSAVE) {
             Runnable r = new Runnable() {
                 @Override
                 public void run() {
-                    saveCharToDB(true);
+                    saveCharToDB(true, savingClient);
                 }
             };
 
             ThreadManager.getInstance().newTask(r); // Spawns a new thread to deal with this
         } else {
-            saveCharToDB(true);
+            saveCharToDB(true, savingClient);
         }
     }
 
     // ItemFactory saveItems and monsterbook.saveCards are the most time consuming here
-    public synchronized void saveCharToDB(boolean notAutosave) {
+    public void saveCharToDB(boolean notAutosave) {
+        saveCharToDB(notAutosave, client);
+    }
+
+    public synchronized void saveCharToDB(boolean notAutosave, MapleClient savingClient) {
         if (!loggedIn)
             return;
 
+        SessionSaveFence.FencePermit savePermit = MapleSessionCoordinator.getInstance().tryAcquireCurrentSession(savingClient);
+        if (savePermit == null) {
+            long staleSessionId = savingClient == null ? -1 : savingClient.getSessionId();
+            FilePrinter.print(FilePrinter.SAVING_CHARACTER,
+                    "Skipped stale session save for " + name + " (account " + accountid + ", session " + staleSessionId + ")");
+            return;
+        }
+
+        try {
         Calendar c = Calendar.getInstance();
 
         if (notAutosave)
@@ -8746,6 +8766,9 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        } finally {
+            savePermit.close();
         }
     }
 

@@ -51,6 +51,7 @@ import javax.script.ScriptEngine;
 import net.server.Server;
 import net.server.coordinator.MapleSessionCoordinator;
 import net.server.coordinator.MapleSessionCoordinator.AntiMulticlientResult;
+import net.server.coordinator.SessionSaveFence;
 import net.server.channel.Channel;
 import net.server.guild.MapleGuild;
 import net.server.guild.MapleGuildCharacter;
@@ -448,6 +449,9 @@ public class MapleClient {
                         return 7;
                     }
                     updateLoginState(LOGIN_LOGGEDIN);
+                    if (!loggedIn) {
+                        return 7;
+                    }
                 } finally {
                     loginLock.unlock();
                 }
@@ -909,34 +913,41 @@ public class MapleClient {
 	}
         
         public void updateLoginState(int newstate) {
+                SessionSaveFence.FencePermit sessionPermit = null;
                 // rules out possibility of multiple account entries
                 if (newstate == LOGIN_LOGGEDIN) {
-                        MapleSessionCoordinator.getInstance().updateOnlineSession(this.getSession());
+                        sessionPermit = MapleSessionCoordinator.getInstance().updateOnlineSession(this.getSession());
+                        if (sessionPermit == null) {
+                                loggedIn = false;
+                                return;
+                        }
                 }
-                
-		try {
-                        Connection con = DatabaseConnection.getConnection();
-			try (PreparedStatement ps = con.prepareStatement("UPDATE accounts SET loggedin = ?, lastlogin = ? WHERE id = ?")) {
+
+                try {
+                        try (Connection con = DatabaseConnection.getConnection();
+                             PreparedStatement ps = con.prepareStatement("UPDATE accounts SET loggedin = ?, lastlogin = ? WHERE id = ?")) {
                                 // using sql currenttime here could potentially break the login, thanks Arnah for pointing this out
-                            
-				ps.setInt(1, newstate);
+                                ps.setInt(1, newstate);
                                 ps.setTimestamp(2, new java.sql.Timestamp(Server.getInstance().getCurrentTime()));
-				ps.setInt(3, getAccID());
-				ps.executeUpdate();
-			}
-                        con.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-                
-		if (newstate == LOGIN_NOTLOGGEDIN) {
-			loggedIn = false;
-			serverTransition = false;
-                        setAccID(0);
-		} else {
-			serverTransition = (newstate == LOGIN_SERVER_TRANSITION);
-			loggedIn = !serverTransition;
-		}
+                                ps.setInt(3, getAccID());
+                                ps.executeUpdate();
+                        } catch (SQLException e) {
+                                e.printStackTrace();
+                        }
+
+                        if (newstate == LOGIN_NOTLOGGEDIN) {
+                                loggedIn = false;
+                                serverTransition = false;
+                                setAccID(0);
+                        } else {
+                                serverTransition = (newstate == LOGIN_SERVER_TRANSITION);
+                                loggedIn = !serverTransition;
+                        }
+                } finally {
+                        if (sessionPermit != null) {
+                                sessionPermit.close();
+                        }
+                }
 	}
 
 	public int getLoginState() {  // 0 = LOGIN_NOTLOGGEDIN, 1= LOGIN_SERVER_TRANSITION, 2 = LOGIN_LOGGEDIN
@@ -1133,7 +1144,7 @@ public class MapleClient {
                                         
                                         player.saveCooldowns();
                                         player.cancelAllDebuffs();
-                                        player.saveCharToDB(true);
+                                        player.saveCharToDB(true, this);
                                         
 					player.logOff();
                                         clear();
@@ -1142,13 +1153,27 @@ public class MapleClient {
 
                                         player.saveCooldowns();
                                         player.cancelAllDebuffs();
-                                        player.saveCharToDB();
+                                        player.saveCharToDB(this);
                                 }
 			}
 		}
 		if (!serverTransition && isLoggedIn()) {
                         MapleSessionCoordinator.getInstance().closeSession(session, false);
-			updateLoginState(MapleClient.LOGIN_NOTLOGGEDIN);
+
+                        SessionSaveFence.FencePermit logoutPermit = MapleSessionCoordinator.getInstance().tryAcquireCurrentSession(this);
+                        if (logoutPermit != null) {
+                                try {
+				        updateLoginState(MapleClient.LOGIN_NOTLOGGEDIN);
+                                } finally {
+                                        logoutPermit.close();
+                                }
+                        } else {
+                                // A newer account session owns the DB login
+                                // state. Retire only this stale client locally.
+                                loggedIn = false;
+                                serverTransition = false;
+                                setAccID(0);
+                        }
 			session.removeAttribute(MapleClient.CLIENT_KEY); // prevents double dcing during login
 			
                         clear();

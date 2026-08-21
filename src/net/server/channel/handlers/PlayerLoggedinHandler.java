@@ -192,6 +192,9 @@ public final class PlayerLoggedinHandler extends AbstractMaplePacketHandler {
                             return;
                         }
                         c.updateLoginState(MapleClient.LOGIN_LOGGEDIN);
+                        if (!c.isLoggedIn()) {
+                            return;
+                        }
                     } finally {
                         releaseAccount(accId);
                     }
